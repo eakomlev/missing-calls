@@ -1,0 +1,9 @@
+node_modules/
+dist/
+data/
+.env
+*.log
+.idea/
+
+# Vendor documentation, not project source
+rest_api.pdf
