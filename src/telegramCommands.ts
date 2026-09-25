@@ -4,7 +4,7 @@ import { logger } from "./logger";
 import { getKv, setKv, getStatsForRange } from "./db";
 import { getMskDayRangeUtc } from "./mskTime";
 
-const TELEGRAM_API_BASE = `https://api.telegram.org/bot${config.telegramBotToken}`;
+const TELEGRAM_API_BASE = `${config.telegramApiBaseUrl}/bot${config.telegramBotToken}`;
 const OFFSET_KEY = "telegram_update_offset";
 const LONG_POLL_TIMEOUT_SEC = 30;
 

@@ -3,7 +3,7 @@ import { config } from "./config";
 import { logger } from "./logger";
 import type { MissedCallRow } from "./db";
 
-const TELEGRAM_API_URL = `https://api.telegram.org/bot${config.telegramBotToken}/sendMessage`;
+const TELEGRAM_API_URL = `${config.telegramApiBaseUrl}/bot${config.telegramBotToken}/sendMessage`;
 
 function minutesSince(startTs: string): number {
   return Math.round((Date.now() - new Date(startTs).getTime()) / 60000);

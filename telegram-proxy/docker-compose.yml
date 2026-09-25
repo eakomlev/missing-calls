@@ -1,0 +1,12 @@
+# Standalone proxy meant to run on a different server that DOES have
+# direct access to api.telegram.org. Point TELEGRAM_API_BASE_URL in the
+# main service's .env at this server, e.g. http://<this-server-ip>:8081
+
+services:
+  telegram-proxy:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    ports:
+      - "8081:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro

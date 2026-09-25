@@ -28,5 +28,11 @@ export const config = {
   callbackTimeoutMin: intEnv("CALLBACK_TIMEOUT_MIN", 15),
   telegramBotToken: requireEnv("TELEGRAM_BOT_TOKEN"),
   telegramChatId: requireEnv("TELEGRAM_CHAT_ID"),
+  // Point this at a reverse proxy (e.g. ./telegram-proxy) if api.telegram.org
+  // isn't directly reachable from where this service runs.
+  telegramApiBaseUrl: (process.env.TELEGRAM_API_BASE_URL ?? "https://api.telegram.org").replace(
+    /\/+$/,
+    "",
+  ),
   dbPath: path.resolve(process.env.DB_PATH ?? "./data/state.db"),
 };
