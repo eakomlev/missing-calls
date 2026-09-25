@@ -30,6 +30,11 @@ db.exec(`
     key TEXT PRIMARY KEY,
     last_poll_ts TEXT NOT NULL
   );
+
+  CREATE TABLE IF NOT EXISTS kv_state (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL
+  );
 `);
 
 export interface MissedCallRow {
@@ -109,4 +114,45 @@ export function getLastPollTs(key: string, fallback: Date): Date {
 
 export function setLastPollTs(key: string, ts: Date): void {
   setPollStateStmt.run(key, ts.toISOString());
+}
+
+const getKvStmt = db.prepare(`SELECT value FROM kv_state WHERE key = ?`);
+const setKvStmt = db.prepare(`
+  INSERT INTO kv_state (key, value) VALUES (?, ?)
+  ON CONFLICT(key) DO UPDATE SET value = excluded.value
+`);
+
+export function getKv(key: string): string | undefined {
+  const row = getKvStmt.get(key) as { value: string } | undefined;
+  return row?.value;
+}
+
+export function setKv(key: string, value: string): void {
+  setKvStmt.run(key, value);
+}
+
+export interface RangeStats {
+  missed: number;
+  resolved: number;
+  overdueNotified: number;
+}
+
+const countMissedInRangeStmt = db.prepare(`
+  SELECT COUNT(*) as cnt FROM missed_calls WHERE start_ts >= ? AND start_ts < ?
+`);
+const countResolvedInRangeStmt = db.prepare(`
+  SELECT COUNT(*) as cnt FROM missed_calls WHERE start_ts >= ? AND start_ts < ? AND resolved = 1
+`);
+const countNotifiedInRangeStmt = db.prepare(`
+  SELECT COUNT(*) as cnt FROM missed_calls WHERE start_ts >= ? AND start_ts < ? AND notified = 1
+`);
+
+export function getStatsForRange(startIso: string, endIsoExclusive: string): RangeStats {
+  const missed = (countMissedInRangeStmt.get(startIso, endIsoExclusive) as { cnt: number }).cnt;
+  const resolved = (countResolvedInRangeStmt.get(startIso, endIsoExclusive) as { cnt: number })
+    .cnt;
+  const overdueNotified = (
+    countNotifiedInRangeStmt.get(startIso, endIsoExclusive) as { cnt: number }
+  ).cnt;
+  return { missed, resolved, overdueNotified };
 }

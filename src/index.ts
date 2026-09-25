@@ -4,6 +4,7 @@ import { logger } from "./logger";
 import { pollMissedCalls } from "./pollers/missedPoller";
 import { pollOutgoingCalls } from "./pollers/outgoingPoller";
 import { checkOverdueCallbacks } from "./watchdog";
+import { registerBotCommands, runTelegramCommandLoop } from "./telegramCommands";
 import { db } from "./db";
 
 function everyNMinutes(n: number): string {
@@ -43,6 +44,10 @@ async function main(): Promise<void> {
   cron.schedule(everyNMinutes(config.watchdogIntervalMin), () =>
     runSafely("checkOverdueCallbacks", checkOverdueCallbacks),
   );
+
+  await runSafely("registerBotCommands", registerBotCommands);
+  // Long-polls Telegram forever in the background; never resolves, never throws.
+  void runTelegramCommandLoop();
 }
 
 function shutdown(signal: string): void {
